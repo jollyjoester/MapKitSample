@@ -78,7 +78,7 @@ class ViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDele
         let directions = MKDirections(request:request)
         directions.calculateDirectionsWithCompletionHandler({
             (response:MKDirectionsResponse!, error:NSError!) -> Void in
-            if ((error?) != nil) {
+            if ((error) != nil) {
                 var alert = UIAlertController(title: "Info", message: "Route Error", preferredStyle: UIAlertControllerStyle.Alert)
                 alert.addAction(UIAlertAction(title: "OK", style: UIAlertActionStyle.Default, handler: nil))
                 self.presentViewController(alert, animated: true, completion: nil)
@@ -92,7 +92,7 @@ class ViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDele
                 return
             }
             
-            let route: MKRoute = response.routes[0] as MKRoute
+            let route: MKRoute = response.routes[0] as! MKRoute
             self.mapView.addOverlay(route.polyline!)
         })
     }
@@ -110,7 +110,7 @@ class ViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDele
         self.presentViewController(alert, animated: true, completion: nil)
         
         var locations: NSArray = locations as NSArray
-        var lastLocation: CLLocation = locations.lastObject as CLLocation
+        var lastLocation: CLLocation = locations.lastObject as! CLLocation
         var coordinate: CLLocationCoordinate2D = lastLocation.coordinate
         
         let latDist: CLLocationDistance = 100
@@ -128,7 +128,7 @@ class ViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDele
     // MARK: - MapView
     func mapView(mapView: MKMapView!, rendererForOverlay overlay: MKOverlay!) -> MKOverlayRenderer! {
         
-        let route: MKPolyline = overlay as MKPolyline
+        let route: MKPolyline = overlay as! MKPolyline
         let routeRenderer = MKPolylineRenderer(polyline:route)
         routeRenderer.lineWidth = 5.0
         routeRenderer.strokeColor = UIColor.redColor()
