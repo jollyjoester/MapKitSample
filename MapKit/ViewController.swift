@@ -38,8 +38,8 @@ class ViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDele
         
         let coordinate: CLLocationCoordinate2D = CLLocationCoordinate2DMake(latitude, longitude) as CLLocationCoordinate2D
         
-        let latDist: CLLocationDistance = 1000.0
-        let longiDist: CLLocationDistance = 1000.0
+//        let latDist: CLLocationDistance = 1000.0
+//        let longiDist: CLLocationDistance = 1000.0
         
         let span = MKCoordinateSpanMake(0.01, 0.01)
         let region: MKCoordinateRegion = MKCoordinateRegionMake(coordinate, span)
@@ -48,7 +48,7 @@ class ViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDele
         mapView.setRegion(region, animated: true)
         
         // Pin
-        var annotation = MKPointAnnotation()
+        let annotation = MKPointAnnotation()
         annotation.coordinate = coordinate
         annotation.title = "8Beat"
         annotation.subtitle = "八王子駅徒歩4分"
@@ -56,44 +56,43 @@ class ViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDele
         
     }
     
-    @IBAction func goTo8Beat(sender: AnyObject) {
-        35.713768
+    @IBAction func goTo8Beat(_ sender: AnyObject) {
         // Direction
-        var fromCoordinate: CLLocationCoordinate2D = mapView.userLocation.location.coordinate
+        let fromCoordinate: CLLocationCoordinate2D = mapView.userLocation.location!.coordinate
         //var fromCoordinate   :CLLocationCoordinate2D = CLLocationCoordinate2DMake(35.713768, 139.777254)
         
-        var toCoordinate   :CLLocationCoordinate2D = CLLocationCoordinate2DMake(35.657524, 139.337159)
+        let toCoordinate   :CLLocationCoordinate2D = CLLocationCoordinate2DMake(35.657524, 139.337159)
         
-        var fromPlacemark = MKPlacemark(coordinate:fromCoordinate, addressDictionary:nil)
-        var toPlacemark = MKPlacemark(coordinate:toCoordinate, addressDictionary:nil)
+        let fromPlacemark = MKPlacemark(coordinate:fromCoordinate, addressDictionary:nil)
+        let toPlacemark = MKPlacemark(coordinate:toCoordinate, addressDictionary:nil)
         
-        var fromItem = MKMapItem(placemark:fromPlacemark);
-        var toItem = MKMapItem(placemark:toPlacemark);
+        let fromItem = MKMapItem(placemark:fromPlacemark);
+        let toItem = MKMapItem(placemark:toPlacemark);
         
         let request = MKDirectionsRequest()
-        request.setSource(fromItem)
-        request.setDestination(toItem)
+        request.source = fromItem
+        request.destination = toItem
         request.requestsAlternateRoutes = true;
-        request.transportType = MKDirectionsTransportType.Walking
+        request.transportType = MKDirectionsTransportType.walking
         let directions = MKDirections(request:request)
-        directions.calculateDirectionsWithCompletionHandler({
-            (response:MKDirectionsResponse!, error:NSError!) -> Void in
+        directions.calculate(completionHandler: {
+            (response:MKDirectionsResponse?, error: Error?) -> Void in
             if ((error) != nil) {
-                var alert = UIAlertController(title: "Info", message: "Route Error", preferredStyle: UIAlertControllerStyle.Alert)
-                alert.addAction(UIAlertAction(title: "OK", style: UIAlertActionStyle.Default, handler: nil))
-                self.presentViewController(alert, animated: true, completion: nil)
+                let alert = UIAlertController(title: "Info", message: "Route Error", preferredStyle: .alert)
+                alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
+                self.present(alert, animated: true, completion: nil)
                 return
             }
             
-            if (response.routes.isEmpty) {
-                var alert = UIAlertController(title: "Info", message: "No Route", preferredStyle: UIAlertControllerStyle.Alert)
-                alert.addAction(UIAlertAction(title: "OK", style: UIAlertActionStyle.Default, handler: nil))
-                self.presentViewController(alert, animated: true, completion: nil)
+            if (response?.routes.isEmpty)! {
+                let alert = UIAlertController(title: "Info", message: "No Route", preferredStyle: .alert)
+                alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
+                self.present(alert, animated: true, completion: nil)
                 return
             }
             
-            let route: MKRoute = response.routes[0] as! MKRoute
-            self.mapView.addOverlay(route.polyline!)
+            let route: MKRoute = response!.routes[0] 
+            self.mapView.add(route.polyline)
         })
     }
     
@@ -103,15 +102,14 @@ class ViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDele
     }
     
     // MARK: - LocationManager
-    func locationManager(manager: CLLocationManager!, didUpdateLocations locations: [AnyObject]!) {
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        let alert = UIAlertController(title: "Info", message: "Location Updated", preferredStyle: UIAlertControllerStyle.alert)
+        alert.addAction(UIAlertAction(title: "OK", style: UIAlertActionStyle.default, handler: nil))
+        self.present(alert, animated: true, completion: nil)
         
-        var alert = UIAlertController(title: "Info", message: "Location Updated", preferredStyle: UIAlertControllerStyle.Alert)
-        alert.addAction(UIAlertAction(title: "OK", style: UIAlertActionStyle.Default, handler: nil))
-        self.presentViewController(alert, animated: true, completion: nil)
-        
-        var locations: NSArray = locations as NSArray
-        var lastLocation: CLLocation = locations.lastObject as! CLLocation
-        var coordinate: CLLocationCoordinate2D = lastLocation.coordinate
+        let locations: NSArray = locations as NSArray
+        let lastLocation: CLLocation = locations.lastObject as! CLLocation
+        let coordinate: CLLocationCoordinate2D = lastLocation.coordinate
         
         let latDist: CLLocationDistance = 100
         let longiDist: CLLocationDistance = 100
@@ -121,17 +119,18 @@ class ViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDele
         mapView.setRegion(region, animated: true)
     }
     
-    func locationManager(manager: CLLocationManager!, didFailWithError error: NSError!) {
+    
+    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
         NSLog("Error")
     }
     
     // MARK: - MapView
-    func mapView(mapView: MKMapView!, rendererForOverlay overlay: MKOverlay!) -> MKOverlayRenderer! {
+    func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
         
         let route: MKPolyline = overlay as! MKPolyline
         let routeRenderer = MKPolylineRenderer(polyline:route)
         routeRenderer.lineWidth = 5.0
-        routeRenderer.strokeColor = UIColor.redColor()
+        routeRenderer.strokeColor = UIColor.red
         return routeRenderer
     }
 }
